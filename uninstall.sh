@@ -33,15 +33,11 @@ delete_hook_and_script() {
 restore_pacman_conf() {
     PACMAN_CONF="/etc/pacman.conf"
     PACMAN_CONF_BACKUP="$(get_backup_name ${PACMAN_CONF})"
-    if [[ -z $PACMAN_CONF_BACKUP ]]; then
-        echo "[i] No pacman.conf backup found"
+    if [[ -f $PACMAN_CONF_BACKUP ]]; then
+        echo "[*] Restoring ${PACMAN_CONF} from ${PACMAN_CONF_BACKUP}..."
+        mv "$PACMAN_CONF_BACKUP" "$PACMAN_CONF"
     else
-        if [[ -f $PACMAN_CONF_BACKUP ]]; then
-            echo "[*] Restoring ${PACMAN_CONF} from ${PACMAN_CONF_BACKUP}..."
-            mv "$PACMAN_CONF_BACKUP" "$PACMAN_CONF"
-        else
-            echo "[i] There's no backup file to restore from"
-        fi
+        echo "[i] There's no backup file to restore from"
     fi
     return 0
 }
