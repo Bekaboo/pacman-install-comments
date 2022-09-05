@@ -5,8 +5,8 @@ prepare() {
     fi
     echo "[*] Installing dependencies..."
     pacman -Syu --needed --noconfirm bash sed coreutils diffutils grep
-    HOOK_PATH="/etc/pacman.d/hooks"
-    SCRIPT_PATH="/etc/pacman.d/scripts"
+    HOOK_PATH="/etc/pacman.d/hooks/"
+    SCRIPT_PATH="/etc/pacman.d/scripts/"
     if [[ ! -d "$HOOK_PATH" ]]; then
         echo "[*] Hook path ${HOOK_PATH} does not exit, creating..."
         mkdir -p "$HOOK_PATH"
@@ -42,15 +42,20 @@ install() {
     PACMAN_CONF="/etc/pacman.conf"
     PACMAN_CONF_BACKUP="$(gen_backup_name ${PACMAN_CONF})"
     PACMAN_CONF_OPTION="HookDir = ${HOOK_PATH}"
-    if grep -Fxq "^${PACMAN_CONF_OPTION}\(\s\+\|$\)" "$PACMAN_CONF"
-    then
-        echo "[i] No need to backup pacman.conf"
-    else
-        echo "[*] Backup ${PACMAN_CONF} to ${PACMAN_CONF_BACKUP}..."
-        cp "$PACMAN_CONF" "${PACMAN_CONF_BACKUP}"
-        echo "[*] Modifying ${PACMAN_CONF}..."
-        sed -i "/^\[options\]\(\s\+\|$\)/a ${PACMAN_CONF_OPTION}" "$PACMAN_CONF"
-    fi
+    case `grep -Fx "$PACMAN_CONF_OPTION" "$PACMAN_CONF" >/dev/null; echo $?` in
+        0)
+            echo "[i] No need to backup pacman.conf, file not modified"
+            ;;
+        1)
+            echo "[*] Backup ${PACMAN_CONF} to ${PACMAN_CONF_BACKUP}..."
+            cp "$PACMAN_CONF" "${PACMAN_CONF_BACKUP}"
+            echo "[*] Modifying ${PACMAN_CONF}..."
+            sed -i "/^\[options\]\(\s\+\|$\)/a ${PACMAN_CONF_OPTION}" "$PACMAN_CONF"
+            ;;
+        *)
+            echo "[!] Error occurred!"
+            ;;
+    esac
     echo "[+] Done!"
 }
 
