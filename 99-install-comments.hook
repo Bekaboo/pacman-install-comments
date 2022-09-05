@@ -1,0 +1,16 @@
+[Trigger]
+Operation = Install
+Operation = Remove
+Type = Package
+Target = *
+
+[Action]
+Description = Updating list of explicitly installed packages...
+Exec = /usr/bin/bash /etc/pacman.d/scripts/install-comments-hook
+When = PostTransaction
+Depends = bash
+Depends = sed
+Depends = coreutils
+Depends = diffutils
+Depends = grep
+Depends = pacman

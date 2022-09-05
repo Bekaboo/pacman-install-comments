@@ -1,0 +1,58 @@
+prepare() {
+    PKGS_LOGPATH="/var/log/"
+    PKGS_LOGFILE="/var/log/pacman-pkg-comments.log"
+    [[ ! -d "$PKGS_LOGPATH" ]] && mkdir -p $PKGS_LOGPATH
+    touch "$PKGS_LOGFILE"
+    return 0
+}
+
+diff_packages() {
+    while IFS= read -r PKG; do
+        if [[ "$PKG" == \+* ]]; then
+            PKGS_ADD+=(${PKG:1})
+        else
+            PKGS_DEL+=(${PKG:1})
+        fi
+    done < <(diff -U0 <(cut -d' ' -f1 "$PKGS_LOGFILE" | sort) \
+                      <(pacman -Qeq | sort) | tail -n +3 | grep ^[^@])
+    return 0
+}
+
+update_package_list() {
+    # Append newly installed packages
+    if [[ ${#PKGS_ADD[@]} -ne 0 ]]; then
+        printf '%s\n' "${PKGS_ADD[@]}" >> "$PKGS_LOGFILE"
+    fi
+    # Remove entries of uninstalled packages
+    for PKG_DEL in "${PKGS_DEL[@]}"
+    do
+        sed -i "/^${PKG_DEL}\(\s\+\|$\)/d" "$PKGS_LOGFILE"
+    done
+    sort "$PKGS_LOGFILE" -o "$PKGS_LOGFILE"
+    return 0
+}
+
+add_comments() {
+    if [[ ${#PKGS_ADD[@]} -eq 0 ]]; then
+        return 0
+    fi
+    # Is nvim/vim/vi available?
+    VEDITOR=$(command -v nvim || command -v vim || command -v vi)
+    if [[ -f "$VEDITOR" ]]; then
+        SEPARATOR="\|"
+        PATTERN="$(printf "${SEPARATOR}^%s\(\s\+\|$\)" "${PKGS_ADD[@]}")"
+        # Trim the separator at the beginning of the string
+        PATTERN="${PATTERN:${#SEPARATOR}}"
+        EXCMD="set expandtab softtabstop=4 tabstop=4 shiftwidth=4"
+        # Let vi search for the newly installed packages, redirect I/O to terminal
+        $VEDITOR -c "$EXCMD" +/"$PATTERN" "$PKGS_LOGFILE" < /dev/tty > /dev/tty
+    else
+        echo -e "\033[1;33mwarning:\033[0m vi not available -- add comments to ${PKGS_LOGFILE} manually"
+    fi
+    return 0
+}
+
+prepare
+diff_packages
+update_package_list
+add_comments
