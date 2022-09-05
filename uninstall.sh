@@ -6,7 +6,7 @@ prepare() {
     return 0
 }
 
-delete_hook_and_script() {
+uninstall() {
     HOOK_PATH="/etc/pacman.d/hooks/"
     HOOK_FILE="/etc/pacman.d/hooks/99-install-comments.hook"
     SCRIPT_PATH="/etc/pacman.d/scripts/"
@@ -27,41 +27,10 @@ delete_hook_and_script() {
             rm -r "$SCRIPT_PATH"
         fi
     fi
-    return 0
-}
-
-restore_pacman_conf() {
-    PACMAN_CONF="/etc/pacman.conf"
-    PACMAN_CONF_BACKUP="$(get_backup_name ${PACMAN_CONF})"
-    if [[ -f $PACMAN_CONF_BACKUP ]]; then
-        echo "[*] Restoring ${PACMAN_CONF} from ${PACMAN_CONF_BACKUP}..."
-        mv "$PACMAN_CONF_BACKUP" "$PACMAN_CONF"
-    else
-        echo "[i] There's no backup file to restore from"
-    fi
-    return 0
-}
-
-get_backup_name() {
-    local name="$1.install-comments-hook.bak"
-    if [[ ! -e "$name" ]]; then
-        printf ""
-    else
-        local -i num=1
-        while [ -e "$name$num" ]; do
-            num+=1
-        done
-        let "num-=1"
-        printf "%s%d" "$name" "$num"
-    fi
-}
-
-finish() {
     echo "[i] Uninstall bash, sed, coreutils, diffutils, or grep if you no longer need them"
     echo "[+] Done!"
+    return 0
 }
 
 prepare
-delete_hook_and_script
-restore_pacman_conf
-finish
+uninstall
