@@ -21,10 +21,11 @@ There must be no space before the package name, comments should be placed after 
 ```bash
 sudo ./install.sh
 ```
-```
-You may want to add `HooDir = /etc/pacman.d/hooks` manually, though it is the default value.
+
+You may want to add `HooDir = /etc/pacman.d/hooks` to your pacman config file, though it is enabled by default.
 
 ## Uninstallation
 
 ```bash
 sudo ./uninstall.sh
+```
